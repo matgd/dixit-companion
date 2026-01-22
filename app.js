@@ -414,10 +414,10 @@ function renderRound() {
                 <span style="font-weight: bold;">${p.name} ${isNarrator ? `(${t('narrator')})` : ''}</span>
             </div>
             
-            <label class="flex-row" style="margin-bottom: 12px; cursor: ${isNarrator ? 'default' : 'pointer'};">
+            ${!isNarrator ? `
+            <label class="flex-row" style="margin-bottom: 12px; cursor: pointer;">
                 <input type="checkbox" id="checkbox-${p.id}" style="width: 24px; height: 24px; margin:0;" 
                     ${inputData.guessed ? 'checked' : ''} 
-                    ${disabledAttr}
                     onchange="updateRoundInput(${p.id}, 'guessed', this.checked)">
                 <span style="margin-left: 10px;">${t('guessedNarrator')}</span>
             </label>
@@ -426,12 +426,13 @@ function renderRound() {
                 <span style="font-size: 0.9rem;">${t('votesReceived')}</span>
                 <div class="flex-row">
                     <button onclick="updateRoundInput(${p.id}, 'votes', -1)" 
-                        style="padding: 5px 12px; margin:0;" ${disabledAttr}>-</button>
+                        style="padding: 5px 12px; margin:0;">-</button>
                     <span id="votes-${p.id}" style="padding: 0 10px; font-weight: bold;">${inputData.votes}</span>
                     <button onclick="updateRoundInput(${p.id}, 'votes', 1)" 
-                        style="padding: 5px 12px; margin:0;" ${disabledAttr}>+</button>
+                        style="padding: 5px 12px; margin:0;">+</button>
                 </div>
             </div>
+            ` : ''}
         `;
         card.appendChild(content);
         container.appendChild(card);
