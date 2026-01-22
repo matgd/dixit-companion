@@ -145,3 +145,19 @@ input {
     gap: 12px;
     margin-top: 12px;
 }
+
+/* Drag and Drop */
+.drag-handle {
+    cursor: grab;
+    padding: 0 10px;
+    font-size: 1.2rem;
+    color: #888;
+    user-select: none;
+    -webkit-user-select: none; 
+    touch-action: none; /* Helps with touch dragging if we act on it */
+}
+
+.player-card.dragging {
+    opacity: 0.5;
+    border: 1px dashed var(--primary-color);
+}

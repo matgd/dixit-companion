@@ -134,16 +134,97 @@ function createPlayerRow(player) {
     row.className = 'player-card flex-row';
     row.id = `player-row-${player.id}`;
     row.style.background = player.color;
+    row.draggable = true; // Enable dragging
+    
+    // Drag Events
+    row.addEventListener('dragstart', handleDragStart);
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('drop', handleDrop);
+    row.addEventListener('dragend', handleDragEnd);
+
+    // Touch support hooks could go here, but simple HTML5 DnD is requested first.
     
     row.innerHTML = `
         <div class="color-dot" id="dot-${player.id}" onclick="openColorPicker(${player.id})" style="background: ${player.color}; border: 2px solid rgba(255,255,255,0.8);"></div>
         <input type="text" value="${player.name}" placeholder="${t('namePlaceholder')}" 
             oninput="updatePlayerName(${player.id}, this.value)" 
             style="margin: 0; flex: 1; background: rgba(0,0,0,0.5); border: none;">
+        <div class="drag-handle">☰</div>
         <button onclick="removePlayer(${player.id})" style="margin: 0; padding: 10px; background: rgba(0,0,0,0.5); border: none;">X</button>
     `;
     return row;
 }
+
+// Drag and Drop Handlers
+let draggedItem = null;
+
+function handleDragStart(e) {
+    draggedItem = this;
+    e.dataTransfer.effectAllowed = 'move';
+    this.classList.add('dragging');
+    // Ensure we can see what we are dragging, maybe set a ghost image if needed
+}
+
+function handleDragOver(e) {
+    e.preventDefault(); // Necessary to allow dropping
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Optional: Visual feedback for reordering before drop (swapping place holders)
+    // A simple implementation: swap in DOM if specific criteria met
+    // For now, let's keep it simple: drop on target swaps them or inserts before
+}
+
+function handleDrop(e) {
+    e.stopPropagation();
+    
+    if (draggedItem !== this) {
+        // Swap or reorder logic
+        // We need to reorder the DOM and then update state.players to match DOM order
+        
+        // Logic: Insert dragged item before the drop target
+        const list = document.getElementById('player-list');
+        // Find position comparison
+        // If we drop on a node, are we inserting before or after?
+        // Let's rely on simple insertBefore behavior. 
+        // If the mouse is in the bottom half of the target, insert after. Top half, before.
+        
+        const rect = this.getBoundingClientRect();
+        const offset = e.clientY - rect.top;
+        
+        if (offset > rect.height / 2) {
+            this.parentNode.insertBefore(draggedItem, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggedItem, this);
+        }
+        
+        // Sync State
+        syncPlayersOrderFromDOM();
+    }
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    draggedItem = null;
+}
+
+function syncPlayersOrderFromDOM() {
+    const list = document.getElementById('player-list');
+    const newOrderIds = Array.from(list.children).map(child => {
+        // ID format: player-row-123456
+        return parseFloat(child.id.replace('player-row-', ''));
+    });
+    
+    // Reorder state.players based on newOrderIds
+    const newPlayersArray = [];
+    newOrderIds.forEach(id => {
+        const p = state.players.find(pl => pl.id === id);
+        if(p) newPlayersArray.push(p);
+    });
+    
+    state.players = newPlayersArray;
+}
+
 
 function addPlayer() {
     if (state.players.length >= 6) return;
