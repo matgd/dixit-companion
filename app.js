@@ -148,7 +148,7 @@ function createPlayerRow(player) {
         <div class="color-dot" id="dot-${player.id}" onclick="openColorPicker(${player.id})" style="background: ${player.color}; border: 2px solid rgba(255,255,255,0.8);"></div>
         <input type="text" value="${player.name}" placeholder="${t('namePlaceholder')}" 
             oninput="updatePlayerName(${player.id}, this.value)" 
-            style="margin: 0; flex: 1; background: rgba(0,0,0,0.5); border: none;">
+            style="margin: 0; flex: 1;">
         <div class="drag-handle">☰</div>
         <button onclick="removePlayer(${player.id})" style="margin: 0; padding: 10px; background: rgba(0,0,0,0.5); border: none;">X</button>
     `;
