@@ -383,27 +383,24 @@ function renderRound() {
 
         const inputData = state.roundInputs[p.id];
         const card = document.createElement('div');
-        card.style.background = 'var(--surface-color)'; 
+        // Combined background: Top layer is a gradient from semi-transparent black to black (fade) clipped to padding-box
+        // Bottom layer is the player's full color gradient clipped to border-box (shows through transparent border)
+        // We darken the player color slightly (0.6 opacity black overlay) to balance visibility and legibility.
+        card.style.background = `linear-gradient(90deg, rgba(0,0,0,0.6) 0%, #000000 95%), ${p.color}`;
+        card.style.backgroundClip = 'padding-box, border-box';
+        card.style.backgroundOrigin = 'padding-box, border-box';
+        card.style.border = '2px solid transparent';
         card.style.padding = '12px';
         card.style.borderRadius = '8px';
         card.style.marginBottom = '10px';
-        card.style.borderLeft = `6px solid`; 
-        card.style.borderImageSource = p.color;
-        card.style.borderImageSlice = 1;
         card.style.position = 'relative';
         card.style.overflow = 'hidden';
         
-        const stripe = document.createElement('div');
-        stripe.style.position = 'absolute';
-        stripe.style.left = '0';
-        stripe.style.top = '0';
-        stripe.style.bottom = '0';
-        stripe.style.width = '6px';
-        stripe.style.background = p.color;
-        card.appendChild(stripe);
-        
+        // Ensure content is above the background
         const content = document.createElement('div');
-        content.style.marginLeft = '12px';
+        content.style.position = 'relative'; 
+        content.style.zIndex = '1';
+        // content.style.marginLeft = '12px'; // No longer needed as we removed the stripe border
         content.innerHTML = `
             <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
                 <span style="font-weight: bold;">${p.name}</span>
