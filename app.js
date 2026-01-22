@@ -361,9 +361,8 @@ function renderRound() {
     if (!state.roundInputs[narrator.id]) {
         state.roundInputs = {}; 
         state.players.forEach(p => {
-             if (p.id !== narrator.id) {
-                 state.roundInputs[p.id] = { guessed: false, votes: 0 };
-             }
+             // Initialize for all players, including narrator (though they won't use it)
+             state.roundInputs[p.id] = { guessed: false, votes: 0 };
         });
     }
 
@@ -379,9 +378,10 @@ function renderRound() {
     `;
 
     state.players.forEach(p => {
-        if (p.id === narrator.id) return;
-
+        // if (p.id === narrator.id) return; // Allow narrator to be rendered
+        const isNarrator = p.id === narrator.id;
         const inputData = state.roundInputs[p.id];
+        
         const card = document.createElement('div');
         // Combined background: Top layer is a gradient from semi-transparent black to black (fade) clipped to padding-box
         // Bottom layer is the player's full color gradient clipped to border-box (shows through transparent border)
@@ -396,19 +396,28 @@ function renderRound() {
         card.style.position = 'relative';
         card.style.overflow = 'hidden';
         
+        if (isNarrator) {
+            card.style.opacity = '0.3';
+            card.style.pointerEvents = 'none'; // Optional: ensure no clicks go through
+        }
+        
         // Ensure content is above the background
         const content = document.createElement('div');
         content.style.position = 'relative'; 
         content.style.zIndex = '1';
-        // content.style.marginLeft = '12px'; // No longer needed as we removed the stripe border
+        
+        // Disabled attributes string
+        const disabledAttr = isNarrator ? 'disabled' : '';
+        
         content.innerHTML = `
             <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-weight: bold;">${p.name}</span>
+                <span style="font-weight: bold;">${p.name} ${isNarrator ? `(${t('narrator')})` : ''}</span>
             </div>
             
-            <label class="flex-row" style="margin-bottom: 12px; cursor: pointer;">
+            <label class="flex-row" style="margin-bottom: 12px; cursor: ${isNarrator ? 'default' : 'pointer'};">
                 <input type="checkbox" id="checkbox-${p.id}" style="width: 24px; height: 24px; margin:0;" 
                     ${inputData.guessed ? 'checked' : ''} 
+                    ${disabledAttr}
                     onchange="updateRoundInput(${p.id}, 'guessed', this.checked)">
                 <span style="margin-left: 10px;">${t('guessedNarrator')}</span>
             </label>
@@ -417,10 +426,10 @@ function renderRound() {
                 <span style="font-size: 0.9rem;">${t('votesReceived')}</span>
                 <div class="flex-row">
                     <button onclick="updateRoundInput(${p.id}, 'votes', -1)" 
-                        style="padding: 5px 12px; margin:0;">-</button>
+                        style="padding: 5px 12px; margin:0;" ${disabledAttr}>-</button>
                     <span id="votes-${p.id}" style="padding: 0 10px; font-weight: bold;">${inputData.votes}</span>
                     <button onclick="updateRoundInput(${p.id}, 'votes', 1)" 
-                        style="padding: 5px 12px; margin:0;">+</button>
+                        style="padding: 5px 12px; margin:0;" ${disabledAttr}>+</button>
                 </div>
             </div>
         `;
