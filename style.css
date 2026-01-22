@@ -74,6 +74,7 @@ button {
     margin: 8px 0;
     transition: all 0.2s ease;
     font-family: var(--font-header);
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
@@ -98,6 +99,10 @@ button:disabled {
     filter: grayscale(1);
 }
 
+#add-player-btn {
+    font-weight: 700;
+}
+
 input {
     background: rgba(0,0,0,0.4);
     border: none;
@@ -115,7 +120,6 @@ input {
 input:focus {
     outline: none;
     border-bottom-color: #DAA520; /* Gold focus */
-    background: rgba(255,255,255,0.05);
 }
 
 .player-card {
