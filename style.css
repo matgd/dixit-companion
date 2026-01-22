@@ -224,3 +224,18 @@ input:focus {
     opacity: 0.5;
     border: 1px dashed var(--primary-color);
 }
+
+/* Button Refinements (Dark Background & Border) */
+#start-game-btn, #next-round-btn, #calculate-score-btn {
+    background: linear-gradient(135deg, #1a1a1a, #000000); /* Dark Background */
+    color: #DAA520; /* Gold Text */
+    border: 2px solid #B8860B; /* Dark Gold Border */
+    text-shadow: 0 0 2px rgba(218, 165, 32, 0.3);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+}
+
+#start-game-btn:hover, #next-round-btn:hover, #calculate-score-btn:hover {
+    filter: brightness(1.2);
+    border-color: #FFD700;
+    box-shadow: 0 0 15px rgba(218, 165, 32, 0.2);
+}

@@ -432,6 +432,7 @@ function renderRound() {
     });
 
     const calcBtn = document.createElement('button');
+    calcBtn.id = 'calculate-score-btn';
     calcBtn.className = 'primary mt-2';
     calcBtn.innerText = t('calcScore');
     calcBtn.onclick = calculateScores;
@@ -531,6 +532,7 @@ function renderScoreboard() {
     });
 
     const nextBtn = document.createElement('button');
+    nextBtn.id = 'next-round-btn';
     nextBtn.className = 'primary mt-2';
     nextBtn.innerText = t('nextRound');
     nextBtn.onclick = nextRound;
