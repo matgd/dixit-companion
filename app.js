@@ -142,12 +142,18 @@ function createPlayerRow(player) {
     row.addEventListener('drop', handleDrop);
     row.addEventListener('dragend', handleDragEnd);
 
+    // Touch support hooks
+    row.addEventListener('touchstart', handleTouchStart, {passive: false});
+    row.addEventListener('touchmove', handleTouchMove, {passive: false});
+    row.addEventListener('touchend', handleTouchEnd);
+
     // Touch support hooks could go here, but simple HTML5 DnD is requested first.
     
     row.innerHTML = `
         <div class="color-dot" id="dot-${player.id}" onclick="openColorPicker(${player.id})" style="background: ${player.color}; border: 2px solid rgba(255,255,255,0.8);"></div>
         <input type="text" value="${player.name}" placeholder="${t('namePlaceholder')}" 
             oninput="updatePlayerName(${player.id}, this.value)" 
+            onkeydown="if(event.key === 'Enter') addPlayer()"
             style="margin: 0; flex: 1;">
         <div class="drag-handle">☰</div>
         <button onclick="removePlayer(${player.id})" style="margin: 0; padding: 10px; background: rgba(0,0,0,0.5); border: none;">X</button>
@@ -208,6 +214,42 @@ function handleDragEnd(e) {
     draggedItem = null;
 }
 
+// Touch Handlers
+function handleTouchStart(e) {
+    if (e.target.classList.contains('drag-handle')) {
+        draggedItem = this;
+        this.classList.add('dragging');
+    }
+}
+
+function handleTouchMove(e) {
+    if (!draggedItem) return;
+    if (e.cancelable) e.preventDefault(); // Prevent scrolling while dragging
+
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const targetRow = target ? target.closest('.player-card') : null;
+
+    if (targetRow && targetRow !== draggedItem && targetRow.parentNode === draggedItem.parentNode) {
+        const rect = targetRow.getBoundingClientRect();
+        const offset = touch.clientY - rect.top;
+
+        if (offset > rect.height / 2) {
+            targetRow.parentNode.insertBefore(draggedItem, targetRow.nextSibling);
+        } else {
+            targetRow.parentNode.insertBefore(draggedItem, targetRow);
+        }
+        syncPlayersOrderFromDOM();
+    }
+}
+
+function handleTouchEnd(e) {
+    if (draggedItem) {
+        draggedItem.classList.remove('dragging');
+        draggedItem = null;
+    }
+}
+
 function syncPlayersOrderFromDOM() {
     const list = document.getElementById('player-list');
     const newOrderIds = Array.from(list.children).map(child => {
@@ -233,7 +275,11 @@ function addPlayer() {
     
     const list = document.getElementById('player-list');
     if(list) {
-        list.appendChild(createPlayerRow(newPlayer));
+        const newRow = createPlayerRow(newPlayer);
+        list.appendChild(newRow);
+        // Focus the new input
+        const input = newRow.querySelector('input');
+        if(input) input.focus();
     }
     
     updateUIState();
