@@ -9,7 +9,7 @@ const state = {
     editingPlayerId: null 
 };
 
-// Colors Definition keeping gradients but linking to names
+// Colors Definition
 const PLAYER_VARIANTS = [
     { key: 'green', grad: 'var(--grad-green)' },
     { key: 'yellow', grad: 'var(--grad-yellow)' },
@@ -22,14 +22,47 @@ const PLAYER_VARIANTS = [
 
 const app = document.getElementById('app');
 
-// Initialize with one empty player if empty
+// Initialize from URL params or default
+const urlParams = new URLSearchParams(window.location.search);
+const playersParam = urlParams.get('withplayers');
+const colorsParam = urlParams.get('withcolors');
+
+if (playersParam) {
+    const names = playersParam.split(',');
+    const colors = colorsParam ? colorsParam.split(',') : [];
+    
+    names.forEach((name, index) => {
+        if (state.players.length >= 6) return; // Hard limit
+
+        // Determine color
+        let colorGrad = null;
+        if (colors[index]) {
+            const variant = PLAYER_VARIANTS.find(v => v.key === colors[index].trim().toLowerCase());
+            if (variant) colorGrad = variant.grad;
+        }
+        
+        // Fallback to next available if no specific color or invalid
+        if (!colorGrad) {
+             const usedColors = state.players.map(p => p.color);
+             const available = PLAYER_VARIANTS.find(v => !usedColors.includes(v.grad)) || PLAYER_VARIANTS[0];
+             colorGrad = available.grad;
+        }
+
+        state.players.push({
+            id: Date.now() + Math.random(),
+            name: name.trim(),
+            color: colorGrad,
+            score: 0
+        });
+    });
+}
+
 if (state.players.length === 0) {
     state.players.push(createPlayerObj());
 }
 
 function createPlayerObj() {
     const usedColors = state.players.map(p => p.color);
-    // Find first variant whose grad is not used
     const available = PLAYER_VARIANTS.find(v => !usedColors.includes(v.grad)) || PLAYER_VARIANTS[0];
     
     return {
@@ -43,7 +76,6 @@ function createPlayerObj() {
 function renderApp() {
     app.innerHTML = '';
     
-    // Header
     const header = document.createElement('div');
     header.className = 'flex-row';
     header.style.justifyContent = 'space-between';
@@ -153,9 +185,6 @@ function updateStartButton() {
     const startBtn = document.getElementById('start-game-btn');
     if(!startBtn) return;
     
-    // Constraints: 
-    // 1. 4-6 players
-    // 2. All names filled
     const countValid = state.players.length >= 4 && state.players.length <= 6;
     const allNamesFilled = state.players.every(p => p.name.trim().length > 0);
     
@@ -166,7 +195,7 @@ function updateStartButton() {
     if (!countValid) {
         startBtn.innerText += ` (${state.players.length}/4-6)`;
     } else if (!allNamesFilled) {
-        startBtn.innerText += ` (${t('playerName')}?)`; // Indicate missing names
+        startBtn.innerText += ` (${t('playerName')}?)`;
     }
 }
 
@@ -185,8 +214,6 @@ function openColorPicker(pid) {
     
     const grid = document.createElement('div');
     grid.className = 'color-grid';
-    // Single column list for better label visibility? Or Grid with text below?
-    // Let's do Grid but with labels.
     grid.style.display = 'grid';
     grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
     grid.style.gap = '16px';
@@ -216,7 +243,6 @@ function openColorPicker(pid) {
         
         const label = document.createElement('span');
         label.style.fontSize = '0.7em';
-        // Access color name from LABELS safely
         const colorName = LABELS[currentLang].colors[variant.key] || variant.key;
         label.innerText = colorName;
         
@@ -248,8 +274,6 @@ function updatePlayerColor(id, color) {
         if(dot) dot.style.background = color;
     }
 }
-
-// ... unchanged parts below ...
 
 function renderRound() {
     const narrator = state.players[state.currentNarratorIndex];
@@ -305,7 +329,7 @@ function renderRound() {
             </div>
             
             <label class="flex-row" style="margin-bottom: 12px; cursor: pointer;">
-                <input type="checkbox" style="width: 24px; height: 24px; margin:0;" 
+                <input type="checkbox" id="checkbox-${p.id}" style="width: 24px; height: 24px; margin:0;" 
                     ${inputData.guessed ? 'checked' : ''} 
                     onchange="updateRoundInput(${p.id}, 'guessed', this.checked)">
                 <span style="margin-left: 10px;">${t('guessedNarrator')}</span>
@@ -314,10 +338,10 @@ function renderRound() {
             <div class="flex-row" style="justify-content: space-between; align-items: center;">
                 <span style="font-size: 0.9rem;">${t('votesReceived')}</span>
                 <div class="flex-row">
-                    <button onclick="updateRoundInput(${p.id}, 'votes', ${inputData.votes - 1})" 
+                    <button onclick="updateRoundInput(${p.id}, 'votes', -1)" 
                         style="padding: 5px 12px; margin:0;">-</button>
-                    <span style="padding: 0 10px; font-weight: bold;">${inputData.votes}</span>
-                    <button onclick="updateRoundInput(${p.id}, 'votes', ${inputData.votes + 1})" 
+                    <span id="votes-${p.id}" style="padding: 0 10px; font-weight: bold;">${inputData.votes}</span>
+                    <button onclick="updateRoundInput(${p.id}, 'votes', 1)" 
                         style="padding: 5px 12px; margin:0;">+</button>
                 </div>
             </div>
@@ -336,12 +360,28 @@ function renderRound() {
 }
 
 function updateRoundInput(pid, field, value) {
+    // Value can be boolean (for guessed) or number delta (for votes)
+    
     if (field === 'votes') {
-        if (value < 0) value = 0;
-        if (value > state.players.length - 2) value = state.players.length - 2; 
+        // Value is delta (-1 or 1)
+        let current = state.roundInputs[pid].votes;
+        let newValue = current + value; // value is delta
+        
+        // Limits
+        // Max votes = TotalPlayers - 2 (Narrator + Self don't vote for it)
+        const maxVotes = state.players.length - 2;
+        
+        if (newValue < 0) newValue = 0;
+        if (newValue > maxVotes) newValue = maxVotes;
+        
+        state.roundInputs[pid][field] = newValue;
+        // Update DOM
+        const el = document.getElementById(`votes-${pid}`);
+        if(el) el.innerText = newValue;
+    } 
+    else if (field === 'guessed') {
+        state.roundInputs[pid][field] = value;
     }
-    state.roundInputs[pid][field] = value;
-    renderApp(); 
 }
 
 function calculateScores() {
@@ -439,7 +479,6 @@ function nextRound() {
 }
 
 function startGame() {
-    // Redundant Validation safely
     if (state.players.length < 4 || state.players.length > 6) return;
     if (!state.players.every(p => p.name.trim().length > 0)) return;
 
