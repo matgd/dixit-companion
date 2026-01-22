@@ -129,7 +129,27 @@ input:focus {
     margin-bottom: 8px;
     transition: all 0.2s;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.player-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30%;
+    background: linear-gradient(to right, transparent, rgba(0,0,0,0.6));
+    pointer-events: none;
+    border-radius: 0 12px 12px 0;
+}
+
+.player-card > * {
+    position: relative;
+    z-index: 1;
 }
 
 .color-dot {

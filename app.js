@@ -519,17 +519,13 @@ function renderScoreboard() {
 
     sortedPlayers.forEach(p => {
         const row = document.createElement('div');
+        row.className = 'player-card flex-row';
         row.style.background = p.color;
-        row.style.padding = '12px';
-        row.style.borderRadius = '8px';
-        row.style.marginBottom = '8px';
-        row.style.display = 'flex';
         row.style.justifyContent = 'space-between';
-        row.style.alignItems = 'center';
         
         row.innerHTML = `
-            <span style="font-weight: bold; font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${p.name}</span>
-            <span style="font-weight: bold; font-size: 1.5rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${p.score}</span>
+            <span style="font-weight: 700; font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${p.name}</span>
+            <span style="font-weight: 700; font-size: 1.5rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${p.score}</span>
         `;
         container.appendChild(row);
     });
