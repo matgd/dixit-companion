@@ -14,6 +14,8 @@
     --grad-purple: linear-gradient(135deg, #9C27B0, #6A1B9A);
     --grad-pink: linear-gradient(135deg, #E91E63, #AD1457);
     --grad-red: linear-gradient(135deg, #F44336, #C62828);
+    --grad-cyan: linear-gradient(135deg, #00E5FF, #00B8D4);
+    --grad-black: linear-gradient(135deg, #424242, #212121);
 
     --spacing-unit: 8px;
     --font-main: "Quicksand", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;

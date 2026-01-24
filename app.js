@@ -17,7 +17,9 @@ const PLAYER_VARIANTS = [
     { key: 'blue', grad: 'var(--grad-blue)' },
     { key: 'purple', grad: 'var(--grad-purple)' },
     { key: 'pink', grad: 'var(--grad-pink)' },
-    { key: 'red', grad: 'var(--grad-red)' }
+    { key: 'red', grad: 'var(--grad-red)' },
+    { key: 'cyan', grad: 'var(--grad-cyan)' },
+    { key: 'black', grad: 'var(--grad-black)' }
 ];
 
 const app = document.getElementById('app');
@@ -32,7 +34,7 @@ if (playersParam) {
     const colors = colorsParam ? colorsParam.split(',') : [];
     
     names.forEach((name, index) => {
-        if (state.players.length >= 6) return; // Hard limit
+        if (state.players.length >= 8) return; // Hard limit
 
         // Determine color
         let colorGrad = null;
@@ -82,7 +84,10 @@ function renderApp() {
     header.style.marginBottom = '20px';
     header.innerHTML = `
         <h2 onclick="location.reload()" style="cursor:pointer">${t('appTitle')}</h2>
-        <button onclick="toggleLang()" style="padding: 6px 12px; font-size: 0.8rem;">${t('langName')}</button>
+        <div class="flex-row">
+            <button onclick="showInstructions()" style="padding: 6px 12px; font-size: 0.8rem;">${t('instructionsBtn')}</button>
+            <button onclick="toggleLang()" style="padding: 6px 12px; font-size: 0.8rem;">${t('langName')}</button>
+        </div>
     `;
     app.appendChild(header);
 
@@ -116,7 +121,7 @@ function renderSetup() {
     addBtn.innerText = `+ ${t('addPlayer')}`;
     addBtn.onclick = addPlayer;
     addBtn.style.borderStyle = 'dashed';
-    if(state.players.length >= 6) addBtn.style.display = 'none';
+    if(state.players.length >= 8) addBtn.style.display = 'none';
     container.appendChild(addBtn);
 
     const startBtn = document.createElement('button');
@@ -269,7 +274,7 @@ function syncPlayersOrderFromDOM() {
 
 
 function addPlayer() {
-    if (state.players.length >= 6) return;
+    if (state.players.length >= 8) return;
     const newPlayer = createPlayerObj();
     state.players.push(newPlayer);
     
@@ -303,7 +308,7 @@ function updatePlayerName(id, name) {
 function updateUIState() {
     const addBtn = document.getElementById('add-player-btn');
     if(addBtn) {
-        addBtn.style.display = state.players.length >= 6 ? 'none' : 'block';
+        addBtn.style.display = state.players.length >= 8 ? 'none' : 'block';
     }
     updateStartButton();
 }
@@ -312,7 +317,7 @@ function updateStartButton() {
     const startBtn = document.getElementById('start-game-btn');
     if(!startBtn) return;
     
-    const countValid = state.players.length >= 4 && state.players.length <= 6;
+    const countValid = state.players.length >= 4 && state.players.length <= 8;
     const allNamesFilled = state.players.every(p => p.name.trim().length > 0);
     
     const isValid = countValid && allNamesFilled;
@@ -320,7 +325,7 @@ function updateStartButton() {
     startBtn.disabled = !isValid;
     startBtn.innerText = t('startGame');
     if (!countValid) {
-        startBtn.innerText += ` (${state.players.length}/4-6)`;
+        startBtn.innerText += ` (${state.players.length}/4-8)`;
     } else if (!allNamesFilled) {
         startBtn.innerText += ` (${t('playerName')}?)`;
     }
@@ -400,6 +405,34 @@ function updatePlayerColor(id, color) {
         if(row) row.style.background = color;
         if(dot) dot.style.background = color;
     }
+}
+
+function showInstructions() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.onclick = (e) => { if(e.target === modal) modal.remove(); };
+    
+    const content = document.createElement('div');
+    content.className = 'modal-content';
+    content.style.maxHeight = '80vh';
+    content.style.overflowY = 'auto'; // scrollable
+    
+    content.innerHTML = `
+        <h3 style="border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px;">${t('instructionsTitle')}</h3>
+        <div style="font-size: 0.95rem; line-height: 1.5; text-align: left;">
+            ${t('instructionsText')}
+        </div>
+    `;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.innerText = t('close');
+    closeBtn.className = 'mt-2';
+    closeBtn.style.width = '100%';
+    closeBtn.onclick = () => modal.remove();
+    content.appendChild(closeBtn);
+    
+    modal.appendChild(content);
+    document.body.appendChild(modal);
 }
 
 function renderRound() {
@@ -611,7 +644,7 @@ function nextRound() {
 }
 
 function startGame() {
-    if (state.players.length < 4 || state.players.length > 6) return;
+    if (state.players.length < 4 || state.players.length > 8) return;
     if (!state.players.every(p => p.name.trim().length > 0)) return;
 
     state.gameStarted = true;
